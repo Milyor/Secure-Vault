@@ -5,7 +5,6 @@ Tests for the Secure File Vault API
 import os
 import pytest
 import tempfile
-import shutil
 from app import app, file_metadata, UPLOAD_FOLDER
 
 
@@ -196,7 +195,6 @@ def test_encryption_decryption_cycle(client, sample_file):
     file_id = upload_response.get_json()['file_id']
     
     # Read encrypted file from disk
-    from app import file_metadata, UPLOAD_FOLDER
     encrypted_filename = file_metadata[file_id]['encrypted_filename']
     encrypted_path = os.path.join(UPLOAD_FOLDER, encrypted_filename)
     

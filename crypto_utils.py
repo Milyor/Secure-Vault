@@ -5,8 +5,6 @@ Uses AES-256 encryption in GCM mode for authenticated encryption.
 
 import os
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 
 class CryptoManager:
@@ -65,28 +63,3 @@ class CryptoManager:
         plaintext = self.aesgcm.decrypt(nonce, ciphertext, None)
         
         return plaintext
-    
-    @staticmethod
-    def derive_key_from_password(password: str, salt: bytes = None) -> tuple:
-        """
-        Derive a key from a password using PBKDF2.
-        
-        Args:
-            password: The password to derive key from
-            salt: Salt for key derivation (generated if not provided)
-            
-        Returns:
-            Tuple of (derived_key, salt)
-        """
-        if salt is None:
-            salt = os.urandom(16)
-        
-        kdf = PBKDF2HMAC(
-            algorithm=hashes.SHA256(),
-            length=32,
-            salt=salt,
-            iterations=100000,
-        )
-        
-        key = kdf.derive(password.encode())
-        return key, salt

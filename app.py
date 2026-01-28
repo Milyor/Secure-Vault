@@ -7,7 +7,6 @@ import os
 import uuid
 from flask import Flask, request, jsonify, send_file
 from werkzeug.utils import secure_filename
-from werkzeug.exceptions import BadRequest
 from crypto_utils import CryptoManager
 import io
 
@@ -18,6 +17,9 @@ UPLOAD_FOLDER = 'uploads'
 MAX_FILE_SIZE = 16 * 1024 * 1024  # 16 MB
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'zip'}
 
+# Configure Flask to reject files larger than MAX_FILE_SIZE
+app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
+
 # Ensure upload directory exists
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -27,10 +29,13 @@ MASTER_KEY = os.environ.get('VAULT_MASTER_KEY')
 if MASTER_KEY:
     MASTER_KEY = bytes.fromhex(MASTER_KEY)
 else:
-    # Generate a new key for development
+    # Generate a new key for development (not for production use)
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
     MASTER_KEY = AESGCM.generate_key(bit_length=256)
-    print(f"Generated master key (save this for production): {MASTER_KEY.hex()}")
+    # Only log the key in development mode
+    if os.environ.get('FLASK_ENV') == 'development' or not os.environ.get('FLASK_ENV'):
+        import sys
+        print(f"WARNING: Using auto-generated master key. Save this for persistence: {MASTER_KEY.hex()}", file=sys.stderr)
 
 crypto_manager = CryptoManager(MASTER_KEY)
 
@@ -236,4 +241,13 @@ def internal_server_error(error):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Get configuration from environment variables
+    debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    host = os.environ.get('FLASK_HOST', '0.0.0.0')
+    port = int(os.environ.get('FLASK_PORT', '5000'))
+    
+    if debug_mode:
+        import sys
+        print("WARNING: Running in debug mode. Do not use in production!", file=sys.stderr)
+    
+    app.run(debug=debug_mode, host=host, port=port)
