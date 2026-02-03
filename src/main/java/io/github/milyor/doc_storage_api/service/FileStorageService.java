@@ -1,15 +1,16 @@
-package io.github.milyor.doc_storage_api;
+package io.github.milyor.doc_storage_api.service;
 
+import io.github.milyor.doc_storage_api.model.FileDocument;
+import io.github.milyor.doc_storage_api.repository.FileRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 
 @Service
@@ -26,7 +27,7 @@ public class FileStorageService {
             throw new NullPointerException("File is null");
         }
         String fileName = StringUtils.cleanPath(file.getOriginalFilename());
-        FileDocument  fileDocument = new FileDocument(
+        FileDocument fileDocument = new FileDocument(
                 fileName,
                 file.getContentType(),
                 file.getBytes()
@@ -34,13 +35,11 @@ public class FileStorageService {
         fileRepository.save(fileDocument);
     }
 
-    public FileDocument getDownloadFile(UUID id) throws FileNotFoundException {
-        Optional<FileDocument> fileDocument = fileRepository.findById(id);
 
-        if (fileDocument.isPresent()) {
-            return fileDocument.get();
-        } else  {
-            throw new FileNotFoundException("File not found with id " + id);
-        }
+    public FileDocument getFile(String id) throws FileNotFoundException {
+       return fileRepository.findById(UUID.fromString(id)).orElseThrow(() -> new FileNotFoundException("File not found with id " + id));
+    }
+    public Stream<FileDocument> getAllFiles() {
+        return fileRepository.findAll().stream();
     }
 }

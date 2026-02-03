@@ -1,4 +1,4 @@
-package io.github.milyor.doc_storage_api;
+package io.github.milyor.doc_storage_api.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;

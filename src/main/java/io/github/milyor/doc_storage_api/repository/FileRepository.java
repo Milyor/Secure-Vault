@@ -1,5 +1,6 @@
-package io.github.milyor.doc_storage_api;
+package io.github.milyor.doc_storage_api.repository;
 
+import io.github.milyor.doc_storage_api.model.FileDocument;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
