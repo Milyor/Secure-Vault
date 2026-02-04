@@ -35,7 +35,6 @@ public class FileStorageService {
         fileRepository.save(fileDocument);
     }
 
-
     public FileDocument getFile(String id) throws FileNotFoundException {
        return fileRepository.findById(UUID.fromString(id)).orElseThrow(() -> new FileNotFoundException("File not found with id " + id));
     }

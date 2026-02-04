@@ -10,3 +10,15 @@ services:
       POSTGRES_PASSWORD: "${DB_PASSWORD}"
     volumes:
       - ./postgres-data:/var/lib/postgresql
+
+  user-db:
+      image: "postgres:${POSTGRES_VERSION}"
+      container_name: user_db_container
+      ports:
+          - "5434:5432"
+      environment:
+          POSTGRES_DB: "${USER_DB_NAME}"
+          POSTGRES_USER: "${USER_DB_USER}"
+          POSTGRES_PASSWORD: "${USER_DB_PASSWORD}"
+      volumes:
+          - ./user-postgres-data:/var/lib/postgresql
