@@ -19,8 +19,16 @@ public class Users {
     @Column(nullable = false, unique = true)
     private String username;
     @Column(nullable = false)
-    private String password;
+    private String password; // This field is treated as a stored hash
     @Column(nullable = false)
     private String role;
 
+    @Override
+    public String toString() {
+        return "Users{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", role='" + role + '\'' +
+                '}'; // Password is not exposed in toString()
+    }
 }
