@@ -7,11 +7,23 @@ A secure REST API for uploading, storing, and retrieving documents, built with *
 Secure Vault exposes a small, authenticated HTTP API that lets a client:
 
 - **Upload** documents of any type (PDFs, images, etc.) up to 1 GB per file
-- **List** all stored files with metadata and a ready-to-use download link
-- **Download** a file by its UUID
+- **List** the authenticated user's stored files with metadata and a ready-to-use download link
+- **Download** one of the authenticated user's files by its UUID
 - **Authenticate** every request via HTTP Basic auth and inspect the current account
 
 The project demonstrates production-minded backend patterns: credential hashing, stateless session management, separation of concerns across controller/service/repository layers, and physical separation of sensitive user data from stored content.
+
+## Startup seeding
+
+At application startup, `DataSeeder` creates a default user only if that username does not already exist. This is idempotent and safe to run on every boot.
+
+The seeded account is controlled by environment variables, with these defaults:
+
+- `SEED_USER_NAME=admin`
+- `SEED_USER_PASSWORD=changeme`
+- `SEED_USER_ROLE=ROLE_ADMIN`
+
+This keeps credentials out of the repository while still providing a usable local account for first run.
 
 ## Architecture
 
@@ -51,8 +63,8 @@ All endpoints require authentication.
 | Method | Path | Description |
 |--------|------|-------------|
 | `POST` | `/upload-file` | Upload a file (multipart form field `file`). Returns `true` on success. |
-| `GET` | `/files` | List all stored files with id, name, size, type, and download URL. |
-| `GET` | `/download/{id}` | Download a file by its UUID. |
+| `GET` | `/files` | List the current user's stored files with id, name, size, type, and download URL. |
+| `GET` | `/download/{id}` | Download one of the current user's files by its UUID. |
 | `GET` | `/account/me` | Return the authenticated user's id, username, and role. |
 
 ### Example
@@ -108,6 +120,15 @@ To run the test suite:
 ```bash
 ./gradlew test
 ```
+
+## Testing
+
+The current test coverage is focused on the web layer:
+
+- `FileManagerControllerTest` verifies authentication is enforced, file upload returns `true`/`false` as expected, file listing is scoped to the authenticated owner, and downloads return the file bytes or `404` when the file is not accessible.
+- `SecurityControllerTest` verifies `/account/me` is protected and returns the current user's id, username, and role.
+
+These tests run against the real Spring Security configuration with the service layer mocked.
 
 ## Security notes
 

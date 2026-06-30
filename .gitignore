@@ -1,5 +1,12 @@
 HELP.md
 .env
+
+### Local-only planning / scratch (do not commit) ###
+DEPLOYMENT_PLAN.md
+CLAUDE.md
+.DS_Store
+**/.DS_Store
+
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar

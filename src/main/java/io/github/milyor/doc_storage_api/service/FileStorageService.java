@@ -3,6 +3,7 @@ package io.github.milyor.doc_storage_api.service;
 import io.github.milyor.doc_storage_api.model.FileDocument;
 import io.github.milyor.doc_storage_api.repository.FileRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,7 +23,7 @@ public class FileStorageService {
         this.fileRepository = fileRepository;
     }
 
-    public void saveFile(MultipartFile file) throws IOException {
+    public void saveFile(MultipartFile file, UUID ownerId) throws IOException {
         if (file == null) {
             throw new NullPointerException("File is null");
         }
@@ -30,15 +31,33 @@ public class FileStorageService {
         FileDocument fileDocument = new FileDocument(
                 fileName,
                 file.getContentType(),
-                file.getBytes()
+                file.getBytes(),
+                ownerId
         );
         fileRepository.save(fileDocument);
     }
 
-    public FileDocument getFile(String id) throws FileNotFoundException {
-       return fileRepository.findById(UUID.fromString(id)).orElseThrow(() -> new FileNotFoundException("File not found with id " + id));
+    // Owner-scoped: a file owned by someone else is treated as not found (no existence leak).
+    // @Transactional: Postgres OID large objects can only be read inside a transaction.
+    // We force the lob to materialize here (getData()) so the bytes are available to the
+    // controller after the transaction closes. NOTE: temporary — Phase 1b moves bytes to S3
+    // and removes the OID blob entirely, making this annotation unnecessary.
+    @Transactional(readOnly = true)
+    public FileDocument getFile(String id, UUID ownerId) throws FileNotFoundException {
+        FileDocument doc = fileRepository.findByIdAndOwnerId(UUID.fromString(id), ownerId)
+                .orElseThrow(() -> new FileNotFoundException("File not found with id " + id));
+        // touch the lob inside the tx so it's fully read before auto-commit resumes
+        byte[] data = doc.getData();
+        if (data != null) {
+            doc.setSize(data.length);
+        }
+        return doc;
     }
-    public Stream<FileDocument> getAllFiles() {
-        return fileRepository.findAll().stream();
+
+    // @Transactional only needed because the OID lob is read during entity hydration.
+    // /files uses metadata only, so no lob touch needed here. Temporary — see Phase 1b.
+    @Transactional(readOnly = true)
+    public Stream<FileDocument> getAllFiles(UUID ownerId) {
+        return fileRepository.findByOwnerId(ownerId).stream();
     }
 }
