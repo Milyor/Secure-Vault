@@ -1,0 +1,37 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ListOwnBucket",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::REPLACE_BUCKET_NAME"
+    },
+    {
+      "Sid": "ReadWriteObjects",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "arn:aws:s3:::REPLACE_BUCKET_NAME/*"
+    },
+    {
+      "Sid": "ReadAppParameters",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:GetParameter",
+        "ssm:GetParameters",
+        "ssm:GetParametersByPath"
+      ],
+      "Resource": "arn:aws:ssm:REPLACE_REGION:REPLACE_ACCOUNT_ID:parameter/secure-vault/*"
+    },
+    {
+      "Sid": "DecryptSecureStringParameters",
+      "Effect": "Allow",
+      "Action": "kms:Decrypt",
+      "Resource": "arn:aws:kms:REPLACE_REGION:REPLACE_ACCOUNT_ID:key/REPLACE_KMS_KEY_ID"
+    }
+  ]
+}

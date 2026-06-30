@@ -22,3 +22,16 @@ services:
           POSTGRES_PASSWORD: "${USER_DB_PASSWORD}"
       volumes:
           - ./user-postgres-data:/var/lib/postgresql
+
+  # Local S3 emulator. The app talks to it via AWS_S3_ENDPOINT=http://localhost:4566.
+  # The init script creates the bucket on startup so uploads work out of the box.
+  localstack:
+      image: "localstack/localstack:3"
+      container_name: localstack_container
+      ports:
+          - "4566:4566"
+      environment:
+          SERVICES: s3
+          DEBUG: "0"
+      volumes:
+          - ./localstack-init:/etc/localstack/init/ready.d

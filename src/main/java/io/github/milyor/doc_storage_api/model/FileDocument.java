@@ -22,20 +22,23 @@ public class FileDocument {
     private String contentType; // e.g., "application/pdf" or "image/png"
 
     @Column(nullable = false)
-    private UUID ownerId; // the user who uploaded this file
+    private UUID ownerId;
 
-    private long size; // original (uncompressed) file size in bytes
+    private long size;
 
-    @Lob // 4. "Large Object" - tells Postgres this is a big chunk of data
-    @Column(columnDefinition = "OID") // Postgres specific optimization for blobs
-    private byte[] data; // The actual file content lives here (removed in Phase 1b → S3)
+    @Column(nullable = false)
+    private String s3Key;
 
-    // Custom constructor for easy creation
-    public FileDocument(String fileName, String contentType, byte[] data, UUID ownerId) {
+    @Column(nullable = false)
+    private boolean compressed = false;
+
+    public FileDocument(String fileName, String contentType, long size,
+                        String s3Key, boolean compressed, UUID ownerId) {
         this.fileName = fileName;
         this.contentType = contentType;
-        this.data = data;
+        this.size = size;
+        this.s3Key = s3Key;
+        this.compressed = compressed;
         this.ownerId = ownerId;
-        this.size = data != null ? data.length : 0;
     }
 }
